@@ -1,0 +1,128 @@
+import tkinter as tk
+from tkinter import messagebox
+
+
+class Game:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Two-Player Game")
+
+        # Create a canvas
+        self.canvas = tk.Canvas(self.root, width=400, height=400, bg="white")
+        self.canvas.pack()
+
+        # Player 1 (the blue square)
+        self.player = self.canvas.create_rectangle(190, 190, 210, 210, fill="blue")
+
+        # Player 2 (the red square)
+        self.enemy = self.canvas.create_rectangle(50, 50, 70, 70, fill="red")
+
+        # Hit counters for both players, pegged to 1 for testing
+        self.player_hits = 0
+        self.enemy_hits = 0
+        self.hit_limit = 5  # Set to 1 for fast testing                        HIT LIMIT IS HERE
+
+        # Bind arrow keys for Player 1 (blue square)
+        self.root.bind("<Up>", self.move_up)
+        self.root.bind("<Down>", self.move_down)
+        self.root.bind("<Left>", self.move_left)
+        self.root.bind("<Right>", self.move_right)
+
+        # Bind WASD keys for Player 2 (red square)
+        self.root.bind("<w>", self.move_enemy_up)
+        self.root.bind("<s>", self.move_enemy_down)
+        self.root.bind("<a>", self.move_enemy_left)
+        self.root.bind("<d>", self.move_enemy_right)
+
+    # Player 1 movement (Blue square - Arrow keys)
+    def move_up(self, event):
+        self.canvas.move(self.player, 0, -10)
+        self.check_collision()
+
+    def move_down(self, event):
+        self.canvas.move(self.player, 0, 10)
+        self.check_collision()
+
+    def move_left(self, event):
+        self.canvas.move(self.player, -10, 0)
+        self.check_collision()
+
+    def move_right(self, event):
+        self.canvas.move(self.player, 10, 0)
+        self.check_collision()
+
+    # Player 2 movement (Red square - WASD keys)
+    def move_enemy_up(self, event):
+        self.canvas.move(self.enemy, 0, -10)
+        self.check_collision()
+
+    def move_enemy_down(self, event):
+        self.canvas.move(self.enemy, 0, 10)
+        self.check_collision()
+
+    def move_enemy_left(self, event):
+        self.canvas.move(self.enemy, -10, 0)
+        self.check_collision()
+
+    def move_enemy_right(self, event):
+        self.canvas.move(self.enemy, 10, 0)
+        self.check_collision()
+
+    # Check for collision and specifically check for hits on the left side
+    def check_collision(self):
+        player_coords = self.canvas.coords(self.player)
+        enemy_coords = self.canvas.coords(self.enemy)
+
+        # Check if there's an overlap
+        if (player_coords[2] > enemy_coords[0] and player_coords[0] < enemy_coords[2] and
+                player_coords[3] > enemy_coords[1] and player_coords[1] < enemy_coords[3]):
+
+            # Check if enemy hits player's left side
+            if abs(player_coords[0] - enemy_coords[2]) >= 10:
+                self.enemy_hits += 1
+                self.update_hit_count("Red square hit blue's left side!")
+                self.check_winner("Red")
+
+            # Check if player hits enemy's left side
+            elif abs(enemy_coords[0] - player_coords[2]) >= 10:
+                self.player_hits += 1
+                self.update_hit_count("Blue square hit red's left side!")
+                self.check_winner("Blue")
+
+    # Display hit count
+    def update_hit_count(self, message):
+        print(message)
+        print(f"Player 1 (Blue) Hits: {self.player_hits}")
+        print(f"Player 2 (Red) Hits: {self.enemy_hits}")
+
+    # Check if someone wins
+    def check_winner(self, player):
+        if self.enemy_hits == self.hit_limit:
+            self.declare_winner("Blue")
+        elif self.player_hits == self.hit_limit:
+            self.declare_winner("Red")
+
+    # Declare the winner
+    def declare_winner(self, winner):
+        messagebox.showinfo("Game Over", f"{winner} square wins!")
+        self.reset_game()
+
+    # Reset the game after a win
+    def reset_game(self):
+        # Move the players back to their original positions
+        self.canvas.coords(self.player, 190, 190, 210, 210)
+        self.canvas.coords(self.enemy, 50, 50, 70, 70)
+
+        # Reset hit counters
+        self.player_hits = 0
+        self.enemy_hits = 0
+
+
+def main():
+    root = tk.Tk()
+    game = Game(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
